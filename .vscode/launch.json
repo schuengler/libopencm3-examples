@@ -29,6 +29,32 @@
                 "interface/stlink-v2.cfg",
                 "target/stm32f4x.cfg"
             ]
+        },
+        {
+            "name": "usart-burst",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/examples/stm32/f4/nucleo-f401re/usart-burst/usart-burst.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype" : "openocd",
+            "runToEntryPoint": "main",
+            "configFiles": [
+                "interface/stlink-v2.cfg",
+                "target/stm32f4x.cfg"
+            ]
+        },
+        {
+            "name": "usart-dma-burst",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/examples/stm32/f4/nucleo-f401re/usart-dma-burst/usart-dma-burst.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype" : "openocd",
+            "runToEntryPoint": "main",
+            "configFiles": [
+                "interface/stlink-v2.cfg",
+                "target/stm32f4x.cfg"
+            ]
         }
     ]
 }

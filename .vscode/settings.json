@@ -17,6 +17,7 @@
         "__locale": "c",
         "gpio.h": "c",
         "rcc.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "adxl345.h": "c"
     }
 }

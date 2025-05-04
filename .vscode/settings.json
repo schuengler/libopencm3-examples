@@ -12,6 +12,11 @@
         "queue": "c",
         "stack": "c",
         "unordered_map": "c",
-        "usart.h": "c"
+        "usart.h": "c",
+        "i2c.h": "c",
+        "__locale": "c",
+        "gpio.h": "c",
+        "rcc.h": "c",
+        "spi.h": "c"
     }
 }

@@ -81,6 +81,36 @@
                 "interface/stlink-v2.cfg",
                 "target/stm32f4x.cfg"
             ]
+        },
+        {
+            "name": "spi-usart-win",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/examples/stm32/f4/nucleo-f401re/spi-usart/spi-usart.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype" : "stlink",
+            "svdFile": "C:/ST/STM32CubeCLT_1.18.0/STMicroelectronics_CMSIS_SVD/STM32F401.svd",
+            "v1" : false,
+            "interface" : "swd",
+            "armToolchainPath" : "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "both",
+            "serverArgs": ["-m", "0"],
+        },
+        {
+            "name": "spi-usart-dma-win",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/examples/stm32/f4/nucleo-f401re/spi-usart-dma/spi-usart-dma.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype" : "stlink",
+            "svdFile": "C:/ST/STM32CubeCLT_1.18.0/STMicroelectronics_CMSIS_SVD/STM32F401.svd",
+            "v1" : false,
+            "interface" : "swd",
+            "armToolchainPath" : "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "both",
+            "serverArgs": ["-m", "0"],
         }
     ]
 }

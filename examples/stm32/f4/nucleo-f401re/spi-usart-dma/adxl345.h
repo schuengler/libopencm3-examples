@@ -20,7 +20,7 @@ static void adxl345_cs_high(void) { gpio_set(CS_PORT, CS_PIN); }
 static void adxl345_write_reg(uint32_t spi, uint8_t reg, uint8_t val)
  {
     adxl345_cs_low();
-    spi_send(spi, reg & 0x3F);           // Write op
+    spi_send(spi, reg & 0x3F);
     spi_read(spi);
     spi_send(spi, val);
     spi_read(spi);

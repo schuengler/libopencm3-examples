@@ -18,6 +18,26 @@ may be more useful, as it covers _many_ more boards, but it is much more limited
 Feel free to add new examples and send them to us either via the mailinglist or
 preferably via a github pull request.
 
+## Initial Setup
+
+In the root directory of this repository execute the following commands:
+
+    git submodule init
+    git submodule update
+    make
+
+## Build for windows
+
+In the msys shell execute following commands:
+
+    export PATH="/c//Program Files/Python 3.9:/c/ARMToolchain/bin:/usr/local/bin:/usr/bin:/bin"
+    make
+
+A real-world example:
+
+    export PATH="/c//Users/<user name>/AppData/Local/Programs/Python/Python311/:/c//Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin:/usr/local/bin:/usr/bin:/bin"
+    make
+
 ## Usage
 
 You _must_ run "make" in the top level directory first.  This builds the

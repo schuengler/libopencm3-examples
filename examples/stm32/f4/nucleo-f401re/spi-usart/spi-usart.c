@@ -1,4 +1,5 @@
 #include <libopencm3/cm3/dwt.h>
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/rcc.h>
@@ -26,6 +27,7 @@ static void usart2_printf(const char *fmt, ...);
 ///
 uint32_t startCycles = 0;
 uint32_t endCycles = 0;
+uint32_t endCyclesTotal = 0;
 
 ///
 /// Function definitions
@@ -55,9 +57,27 @@ void usart2_setup(void)
 	usart_set_mode(USART2, USART_MODE_TX);
 	usart_set_parity(USART2, USART_PARITY_NONE);
 	usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+	usart_enable_tx_complete_interrupt(USART2);
 
 	// enable usart
 	usart_enable(USART2);
+
+	nvic_enable_irq(NVIC_USART2_IRQ);
+}
+
+/// @brief Interrupt handler for usart2
+void usart2_isr(void)
+{
+	if ((USART_SR(USART2) & USART_SR_TC) != 0)
+	{
+        // clear interrupt flag
+		USART_SR(USART2) &= ~USART_SR_TC;
+
+		// benchmark: number used cycles to update display
+		endCyclesTotal = dwt_read_cycle_counter();
+		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 38099, 38031, 38003, 38139, 37957
+		__asm__("nop");
+    }
 }
 
 /// @brief Setup gpios
@@ -133,11 +153,12 @@ int main(void)
 
 		usart2_printf("X=%4d, Y=%4d, Z=%4d\n", x, y, z);
 
+		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
 		uint32_t usedCycles = endCycles - startCycles; // 35253, 35176, 35253, 35197
 		__asm__("nop");
 
-		wait(1000000);
+		wait(2000000);
 	}
 
 	return 0;

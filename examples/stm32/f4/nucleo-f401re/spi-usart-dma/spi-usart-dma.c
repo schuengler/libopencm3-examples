@@ -48,6 +48,7 @@ static void wait(uint32_t cycles);
 ///
 uint32_t startCycles = 0;
 uint32_t endCycles = 0;
+uint32_t endCyclesTotal = 0;
 
 ///
 /// Function definitions
@@ -147,6 +148,11 @@ void dma1_stream6_isr(void)
 	if (dma_get_interrupt_flag(DMA_USART, DMA_DEMO_STREAM, DMA_TCIF)) 
 	{
 		dma_clear_interrupt_flags(DMA_USART, DMA_DEMO_STREAM, DMA_TCIF);
+
+		// benchmark: number used cycles to update display
+		endCyclesTotal = dwt_read_cycle_counter();
+		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 35962, 35974, 35949, 35920, 35987
+		__asm__("nop");
 	}
 }
 
@@ -155,7 +161,7 @@ void dma1_stream6_isr(void)
 /// @param  
 void usart2_printf(const char *fmt, ...) 
 {
-	size_t maxStringLength = 24;
+	const size_t maxStringLength = 24;
     DmaDataType buf[maxStringLength];
     va_list args;
     va_start(args, fmt);
@@ -225,6 +231,10 @@ uint8_t rx[7];
 /// @brief Interrupt handler for dma2 stream 0 -> spi rx
 void dma2_stream0_isr(void)
 {
+	uint32_t startCyclesIsr = 0;
+	uint32_t endCyclesIsr = 0;
+
+	startCyclesIsr = dwt_read_cycle_counter();
 	if (dma_get_interrupt_flag(DMA_SPI, DMA2_DEMO_STREAM_RX, DMA_TCIF)) 
 	{
 		dma_clear_interrupt_flags(DMA_SPI, DMA2_DEMO_STREAM_RX, DMA_TCIF);
@@ -238,9 +248,12 @@ void dma2_stream0_isr(void)
 		int16_t y = (int16_t)((rx[4] << 8) | rx[3]);
 		int16_t z = (int16_t)((rx[6] << 8) | rx[5]);
 		usart2_printf("X=%4d, Y=%4d, Z=%4d\n", x, y, z);
-
-		__asm__("nop");
 	}
+
+	// benchmark: number of cycles used by processing adxl345 data 
+	endCyclesIsr = dwt_read_cycle_counter();
+	volatile uint32_t usedCycles = endCyclesIsr - startCyclesIsr; // 3853, 3736, 3736, 3736, 3736
+	__asm__("nop");
 }
 
 /// @brief Read sensor values through dma
@@ -281,6 +294,7 @@ int main(void)
 
         adxl345_read_xyz_dma();
 
+		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
 		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590
 		__asm__("nop");

@@ -18,6 +18,10 @@
         "gpio.h": "c",
         "rcc.h": "c",
         "spi.h": "c",
-        "adxl345.h": "c"
+        "adxl345.h": "c",
+        "pwr.h": "c",
+        "cortex.h": "c",
+        "dwt.h": "c",
+        "nvic.h": "c"
     }
 }

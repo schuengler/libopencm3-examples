@@ -1,9 +1,11 @@
+#include <libopencmsis/core_cm3.h>
 #include <libopencm3/cm3/dwt.h>
 #include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/dma.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/pwr.h>
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
 
 #include <stdarg.h>
@@ -267,6 +269,12 @@ void adxl345_read_xyz_dma(void)
     dma_enable_stream(DMA_SPI, DMA2_DEMO_STREAM_TX);
     spi_enable_rx_dma(SPI1);
     spi_enable_tx_dma(SPI1);
+
+	// energy saving
+	pwr_set_standby_mode();
+	pwr_clear_wakeup_flag();
+	// sleep and wait for interrupt
+	__WFI();
 }
 
 /// @brief Setup periphery
@@ -296,7 +304,7 @@ int main(void)
 
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
-		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590
+		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590 | with sleep 5405, 5406, 5406, 5406, 5289
 		__asm__("nop");
 
         wait(1000000);

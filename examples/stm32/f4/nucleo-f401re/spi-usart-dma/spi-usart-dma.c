@@ -153,7 +153,7 @@ void dma1_stream6_isr(void)
 
 		// benchmark: number used cycles to update display
 		endCyclesTotal = dwt_read_cycle_counter();
-		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 35962, 35974, 35949, 35920, 35987
+		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 35962, 35974, 35949, 35920, 35987 | with sleep 36065, 36032, 36026, 36061, 36028 
 		__asm__("nop");
 	}
 }

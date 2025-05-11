@@ -154,6 +154,7 @@ void dma1_stream6_isr(void)
 		// benchmark: number used cycles to update display
 		endCyclesTotal = dwt_read_cycle_counter();
 		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 35962, 35974, 35949, 35920, 35987 | with sleep 36065, 36032, 36026, 36061, 36028 
+		(void) usedCycles;
 		__asm__("nop");
 	}
 }
@@ -255,6 +256,7 @@ void dma2_stream0_isr(void)
 	// benchmark: number of cycles used by processing adxl345 data 
 	endCyclesIsr = dwt_read_cycle_counter();
 	volatile uint32_t usedCycles = endCyclesIsr - startCyclesIsr; // 3853, 3736, 3736, 3736, 3736
+	(void) usedCycles;
 	__asm__("nop");
 }
 
@@ -304,7 +306,8 @@ int main(void)
 
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
-		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590 | with sleep 5405, 5406, 5406, 5406, 5289
+		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590 | with sleep 5405, 5406, 5406, 5406, 5289#
+		(void) usedCycles;
 		__asm__("nop");
 
         wait(1000000);

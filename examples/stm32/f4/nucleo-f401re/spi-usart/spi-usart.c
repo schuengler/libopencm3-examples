@@ -76,6 +76,7 @@ void usart2_isr(void)
 		// benchmark: number used cycles to update display
 		endCyclesTotal = dwt_read_cycle_counter();
 		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 38099, 38031, 38003, 38139, 37957
+		(void) usedCycles;
 		__asm__("nop");
     }
 }
@@ -156,6 +157,7 @@ int main(void)
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
 		uint32_t usedCycles = endCycles - startCycles; // 35253, 35176, 35253, 35197
+		(void) usedCycles;
 		__asm__("nop");
 
 		wait(2000000);

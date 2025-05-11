@@ -158,7 +158,7 @@ void dma1_stream6_isr(void)
 
 		// benchmark: number used cycles to update display
 		endCyclesTotal = dwt_read_cycle_counter();
-		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 35962, 35974, 35949, 35920, 35987 | with sleep 36065, 36032, 36026, 36061, 36028 
+		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 36065, 36032, 36026, 36061, 36028 
 		(void) usedCycles;
 		__asm__("nop");
 	}
@@ -284,11 +284,10 @@ void adxl345_read_xyz_dma(void)
     spi_enable_rx_dma(SPI1);
     spi_enable_tx_dma(SPI1);
 
-	// energy saving
-	pwr_set_standby_mode();
-	pwr_clear_wakeup_flag();
+#ifndef BENCHMARK
 	// sleep and wait for interrupt
 	__WFI();
+#endif
 }
 
 /// @brief Setup periphery
@@ -325,6 +324,10 @@ int main(void)
 		if(updateDataDone)
 		{	
 			updateDataDone = false;
+			// NOTE: We must not set sleep (wait for interrupt) mode from ISR, because then
+			//       the ISR will not finished and is still pending. This yields the effect
+			//       that no further interrupts will be processed and the CPU will never 
+			//       return from sleep.
 			// sleep
 			__WFI();
 		}
@@ -337,7 +340,7 @@ int main(void)
 
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
-		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590 | with sleep 5405, 5406, 5406, 5406, 5289#
+		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590
 		(void) usedCycles;
 		__asm__("nop");
 

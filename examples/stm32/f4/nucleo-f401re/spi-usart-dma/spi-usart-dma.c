@@ -14,6 +14,8 @@
 
 #include "adxl345.h"
 
+#define BENCHMARK // if defined only one sleep is used but timestamps works properly
+
 // DMA1 for usart2
 // DMA1 request mapping (table 43, STM32F4x reference manual) 
 // specifies channel 4 stream 6 for USART2_TX
@@ -51,6 +53,9 @@ static void wait(uint32_t cycles);
 uint32_t startCycles = 0;
 uint32_t endCycles = 0;
 uint32_t endCyclesTotal = 0;
+
+bool updateDataDone = false;
+bool updateDisplayDone = true;
 
 ///
 /// Function definitions
@@ -157,6 +162,11 @@ void dma1_stream6_isr(void)
 		(void) usedCycles;
 		__asm__("nop");
 	}
+
+#ifndef BENCHMARK
+	wait(2000000);
+	updateDisplayDone = true;
+#endif
 }
 
 /// @brief Format string with xyz values and send through dma (usart2)
@@ -258,6 +268,8 @@ void dma2_stream0_isr(void)
 	volatile uint32_t usedCycles = endCyclesIsr - startCyclesIsr; // 3853, 3736, 3736, 3736, 3736
 	(void) usedCycles;
 	__asm__("nop");
+
+	updateDataDone = true;
 }
 
 /// @brief Read sensor values through dma
@@ -300,9 +312,28 @@ int main(void)
 
     while (1)
 	{	
-		startCycles = dwt_read_cycle_counter();
+#ifndef BENCHMARK
+		//
+		// Better solution but harder to benchmark
+		//
+		if(updateDisplayDone)
+		{	
+			updateDisplayDone = false;
+			adxl345_read_xyz_dma();
+		}
 
-        adxl345_read_xyz_dma();
+		if(updateDataDone)
+		{	
+			updateDataDone = false;
+			// sleep
+			__WFI();
+		}
+#else
+		//
+		// Benchmark solution
+		//
+		startCycles = dwt_read_cycle_counter();
+		adxl345_read_xyz_dma();
 
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
@@ -310,7 +341,8 @@ int main(void)
 		(void) usedCycles;
 		__asm__("nop");
 
-        wait(1000000);
+		wait(2000000);
+#endif
     }
 }
 

@@ -53,6 +53,9 @@ static void wait(uint32_t cycles);
 uint32_t startCycles = 0;
 uint32_t endCycles = 0;
 uint32_t endCyclesTotal = 0;
+uint32_t usedCyclesMain = 0;
+uint32_t usedCyclesDmaSpi = 0;
+uint32_t usedCyclesDmaUsart = 0;
 
 bool updateDataDone = false;
 bool updateDisplayDone = true;
@@ -123,26 +126,31 @@ void dma1_usart2_setup(DmaDataType* data, size_t size)
 	// enable interrupt
 	nvic_enable_irq(DMA_DEMO_STREAM_IRQ);
 
+	// reset and disable stream for configuration
 	dma_stream_reset(DMA_USART, DMA_DEMO_STREAM);
 	dma_disable_stream(DMA_USART, DMA_DEMO_STREAM);
 
-	dma_set_priority(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_PL_HIGH);
+	// FROM WHERE?
+	// src address 
+	dma_set_memory_address(DMA_USART, DMA_DEMO_STREAM, (uint32_t)data);
 	dma_set_memory_size(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_MSIZE_8BIT);
-	dma_set_peripheral_size(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_PSIZE_8BIT);
+	// HOW MANY?
+	dma_set_number_of_data(DMA_USART, DMA_DEMO_STREAM, size);
 	dma_enable_memory_increment_mode(DMA_USART, DMA_DEMO_STREAM);
+	dma_enable_transfer_complete_interrupt(DMA_USART, DMA_DEMO_STREAM);
 
+	// TO WHERE?
+	// dest address (usart)
+	dma_set_peripheral_address(DMA_USART, DMA_DEMO_STREAM, (uint32_t)&USART_DR(USART2));
+	dma_set_peripheral_size(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_PSIZE_8BIT);
+
+	// HOW?
 	// dma mode
 	dma_enable_direct_mode(DMA_USART, DMA_DEMO_STREAM);
 	dma_set_transfer_mode(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
+	dma_set_priority(DMA_USART, DMA_DEMO_STREAM, DMA_SxCR_PL_HIGH);
 
-	// dest address (usart)
-	dma_set_peripheral_address(DMA_USART, DMA_DEMO_STREAM, (uint32_t)&USART_DR(USART2));
-	
-	// src address 
-	dma_set_memory_address(DMA_USART, DMA_DEMO_STREAM, (uint32_t)data);
-	dma_set_number_of_data(DMA_USART, DMA_DEMO_STREAM, size);
-	dma_enable_transfer_complete_interrupt(DMA_USART, DMA_DEMO_STREAM);
-
+	// select channel for periphery
 	dma_channel_select(DMA_USART, DMA_DEMO_STREAM, DMA_DEMO_CHANNEL);
 	dma_enable_stream(DMA_USART, DMA_DEMO_STREAM);
 
@@ -151,15 +159,29 @@ void dma1_usart2_setup(DmaDataType* data, size_t size)
 
 /// @brief Interrupt handler for dma1 stream 6
 void dma1_stream6_isr(void)
-{
+{	
+	uint32_t startCyclesIsr = 0;
+	uint32_t endCyclesIsr = 0;
+
+	startCyclesIsr = dwt_read_cycle_counter();
 	if (dma_get_interrupt_flag(DMA_USART, DMA_DEMO_STREAM, DMA_TCIF)) 
 	{
 		dma_clear_interrupt_flags(DMA_USART, DMA_DEMO_STREAM, DMA_TCIF);
 
 		// benchmark: number used cycles to update display
+		endCyclesIsr = dwt_read_cycle_counter();
+		usedCyclesDmaUsart = endCyclesIsr - startCyclesIsr;
 		endCyclesTotal = dwt_read_cycle_counter();
-		volatile uint32_t usedCycles = endCyclesTotal - startCycles; // 36065, 36032, 36026, 36061, 36028 
+		// used cycles by the = cpu cycles blocked
+		// > dma configuration
+		// > isr triggered by spi dma read
+		// > isr triggered by usart dma write
+		volatile uint32_t usedCycles = usedCyclesMain + usedCyclesDmaSpi + usedCyclesDmaUsart; // 4517, 4517, 4517, 4517, 4517 
+		// elapsed cycles from beginning of current while-
+		// iteration to the update usart disaplay
+		volatile uint32_t elapsedCycles = endCyclesIsr - startCycles; // 36065, 36032, 36026, 36061, 36028 
 		(void) usedCycles;
+		(void) elapsedCycles;
 		__asm__("nop");
 	}
 
@@ -265,8 +287,8 @@ void dma2_stream0_isr(void)
 
 	// benchmark: number of cycles used by processing adxl345 data 
 	endCyclesIsr = dwt_read_cycle_counter();
-	volatile uint32_t usedCycles = endCyclesIsr - startCyclesIsr; // 3853, 3736, 3736, 3736, 3736
-	(void) usedCycles;
+	usedCyclesDmaSpi = endCyclesIsr - startCyclesIsr; // 3853, 3736, 3736, 3736, 3736
+	(void) usedCyclesDmaSpi;
 	__asm__("nop");
 
 	updateDataDone = true;
@@ -340,8 +362,8 @@ int main(void)
 
 		// benchmark: number of cycles used by a single main iteration
 		endCycles = dwt_read_cycle_counter();
-		uint32_t usedCycles = endCycles - startCycles; // 590, 590, 590, 590
-		(void) usedCycles;
+		usedCyclesMain = endCycles - startCycles; // 590, 590, 590, 590
+		(void) usedCyclesMain;
 		__asm__("nop");
 
 		wait(2000000);
